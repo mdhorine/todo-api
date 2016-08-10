@@ -24,9 +24,9 @@ app.get('/todos', function(req, res) {
 // GET /todos/:id
 
 app.get('/todos/:id', function(req, res) {
-	var id = req.params.id;
+	var id = parseInt(req.params.id);
 
-	var matchedTodo = _.findWhere(todos, {id: req.params.id});
+	var matchedTodo = _.findWhere(todos, {id: id});
 
 	if (matchedTodo) {
 		res.json(matchedTodo);
