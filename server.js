@@ -59,6 +59,40 @@ app.post('/todos', jsonParser, function(req, res) {
 	res.send('Thanks for your submission.');
 });
 
+// PUT /todos/:id
+
+app.put('/todos/:id', jsonParser, function(req, res) {
+	var id = parseInt(req.params.id);
+	var matchedTodo = _.findWhere(todos, {id: id});
+
+	var body = _.pick(req.body, 'description', 'completed');
+	var validAttributes = {};
+
+	if (!matchedTodo)  {
+		return res.status(404).send('Id not found');
+	}
+
+	if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+		validAttributes.completed = body.completed;
+	}
+	else if (body.hasOwnProperty('completed')) {
+		return res.status(400).send('Invalid request.');
+	}
+
+	if (body.hasOwnProperty('description') && _.isString(body.description) && 
+		body.description.trim().length > 0) {
+		validAttributes.description = body.description.trim();
+	}
+	else if (body.hasOwnProperty('description')) {
+		return res.status(400).send('Invalid request.');
+	}
+
+	_.extend(matchedTodo, validAttributes);
+
+	res.json(validAttributes);
+});
+
+
 // DELETE /todos/:id
 
 app.delete('/todos/:id', function(req, res) {
