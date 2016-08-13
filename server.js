@@ -15,10 +15,33 @@ app.get('/', function(req, res) {
 	res.send('Todo API Root');
 });
 
-// GET /todos
+// GET /todos (params: completed)
 
 app.get('/todos', function(req, res) {
-	res.json(todos);
+	var filter = req.query.completed;
+	var q = req.query.q;
+	var filteredTodos = todos;
+
+	if (filter == "true") {
+		filteredTodos = _.filter(todos, function(todo) {
+			return todo.completed === true;
+		});
+	}
+	else if (filter == "false") {
+		filteredTodos = _.filter(todos, function(todo) {
+			return todo.completed === false;
+		});
+	}
+
+	if (q) {
+		filteredTodos = _.filter(filteredTodos, function(todo) {
+			if (todo.description.toLowerCase().indexOf(q.toLowerCase()) > -1) {
+				return true;
+			};
+		});
+	};
+
+	res.json(filteredTodos);
 });
 
 // GET /todos/:id
