@@ -20,30 +20,38 @@ app.get('/', function(req, res) {
 // GET /todos (params: completed)
 
 app.get('/todos', function(req, res) {
-	var filter = req.query.completed;
-	var q = req.query.q;
-	var filteredTodos = todos;
+	var query = req.query;
+	var where = {};
 
-	if (filter == "true") {
-		filteredTodos = _.filter(todos, function(todo) {
-			return todo.completed === true;
-		});
-	}
-	else if (filter == "false") {
-		filteredTodos = _.filter(todos, function(todo) {
-			return todo.completed === false;
-		});
+	if (query.hasOwnProperty('completed')) {
+		if (query.completed === 'true') {
+			where.completed = true;
+		}
+		else if (query.completed === 'false') {
+			where.completed = false;
+		}
 	}
 
-	if (q) {
-		filteredTodos = _.filter(filteredTodos, function(todo) {
-			if (todo.description.toLowerCase().indexOf(q.toLowerCase()) > -1) {
-				return true;
-			};
-		});
-	};
+	if (query.hasOwnProperty('q') && query.q.length > 0) {
+		where.description = {
+			$like: '%' + query.q + '%'
+		};
+	}
 
-	res.json(filteredTodos);
+	db.Todo.findAll({
+		where: where
+	})
+	.then(function(todos) {
+		if(todos.length > 0) {
+			res.status(200).json(todos);
+		}
+		else {
+			res.status(404).send('No matching results');
+		}
+	})
+	.catch(function(e) {
+		res.status(400).json(e);
+	});
 });
 
 // GET /todos/:id
