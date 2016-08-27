@@ -60,11 +60,7 @@ app.get('/todos/:id', function(req, res) {
 	var id = parseInt(req.params.id);
 
 	db.Todo
-		.findById({
-			where: {
-				id: id
-			}
-		})
+		.findById(id)
 		.then(function(todo) {
 			if(!!todo) {
 				res.status(200).json(todo.toJSON());
