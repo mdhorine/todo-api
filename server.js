@@ -60,7 +60,7 @@ app.get('/todos/:id', function(req, res) {
 	var id = parseInt(req.params.id);
 
 	db.Todo
-		.findOne({
+		.findById({
 			where: {
 				id: id
 			}
