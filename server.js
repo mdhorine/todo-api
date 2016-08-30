@@ -115,18 +115,18 @@ app.put('/todos/:id', jsonParser, function(req, res) {
 		.findById(id)
 		.then(function(todo) { 
 			if(todo) { 
-				return todo.update(attributes);
+				todo.update(attributes)
+					.then(function(todo) {
+						res.status(200).json(todo.toJSON());
+					}, function(e) {
+						res.status(400).json(e);	
+					});
 			}
 			else {
 				res.status(404).send('Item not found');
 			}
 		}, function(e) {
 			res.status(500).json(e);
-		})
-		.then(function(todo) {
-			res.status(200).json(todo.toJSON());
-		}, function(e) {
-			res.status(400).json(e);	
 		});
 });
 
