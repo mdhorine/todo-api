@@ -97,33 +97,37 @@ app.post('/todos', jsonParser, function(req, res) {
 
 app.put('/todos/:id', jsonParser, function(req, res) {
 	var id = parseInt(req.params.id);
-	var matchedTodo = _.findWhere(todos, {id: id});
 
 	var body = _.pick(req.body, 'description', 'completed');
-	var validAttributes = {};
+	var attributes = {};
 
-	if (!matchedTodo)  {
-		return res.status(404).send('Id not found');
+	if (body.hasOwnProperty('completed')) {
+		attributes.completed = body.completed;
 	}
 
-	if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-		validAttributes.completed = body.completed;
-	}
-	else if (body.hasOwnProperty('completed')) {
-		return res.status(400).send('Invalid request.');
+	if (body.hasOwnProperty('description')) {
+		attributes.description = body.description.trim();
 	}
 
-	if (body.hasOwnProperty('description') && _.isString(body.description) && 
-		body.description.trim().length > 0) {
-		validAttributes.description = body.description.trim();
-	}
-	else if (body.hasOwnProperty('description')) {
-		return res.status(400).send('Invalid request.');
-	}
+	// lookup row, update attributes, save row
 
-	_.extend(matchedTodo, validAttributes);
-
-	res.json(validAttributes);
+	db.Todo
+		.findById(id)
+		.then(function(todo) { 
+			if(todo) { 
+				return todo.update(attributes);
+			}
+			else {
+				res.status(404).send('Item not found');
+			}
+		}, function(e) {
+			res.status(500).json(e);
+		})
+		.then(function(todo) {
+			res.status(200).json(todo.toJSON());
+		}, function(e) {
+			res.status(400).json(e);	
+		});
 });
 
 
