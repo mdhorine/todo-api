@@ -155,6 +155,24 @@ app.delete('/todos/:id', function(req, res) {
 		});
 });
 
+// POST /users
+
+app.post('/users', jsonParser, function(req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+
+	db.User
+		.create({
+			email: body.email.trim(),
+			password: body.password.trim()
+		})
+		.then(function(todo) {
+			res.status(200).json(todo.toJSON());
+		})
+		.catch(function(e) {
+			res.status(400).json(e);
+		});	
+});
+
 db.sequelize.sync().then(function() {
 	app.listen(PORT, function() {
 	console.log('Express listening on port ' + PORT + '!');
