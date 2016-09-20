@@ -166,7 +166,7 @@ app.post('/users', jsonParser, function(req, res) {
 			password: body.password.trim()
 		})
 		.then(function(todo) {
-			res.status(200).json(todo.toJSON());
+			res.status(200).json(todo.toPublicJSON());
 		})
 		.catch(function(e) {
 			res.status(400).json(e);
