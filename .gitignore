@@ -1,3 +1,6 @@
 node_modules/
+typings/
+jsconfig.json
+typings.json
 /data/*.sqlite
 /playground

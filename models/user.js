@@ -2,8 +2,10 @@ var bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 var _ = require('underscore');
+var cryptojs = require('crypto-js');
+var jwt = require('jsonwebtoken');
 
-module.exports = function(sequelize, DataTypes) {
+module.exports = function (sequelize, DataTypes) {
 	var User = sequelize.define('user', {
 		email: {
 			type: DataTypes.STRING,
@@ -25,7 +27,7 @@ module.exports = function(sequelize, DataTypes) {
 			validate: {
 				len: [7, 100]
 			},
-			set: function(val) {
+			set: function (val) {
 				var salt = bcrypt.genSaltSync(saltRounds);
 				var hash = bcrypt.hashSync(val, salt);
 				this.setDataValue('password', val);
@@ -34,57 +36,72 @@ module.exports = function(sequelize, DataTypes) {
 			}
 		}
 	}, {
-		hooks: {
-			beforeValidate: function(user, options) {
-				if (typeof user.email === 'string') {
-					user.email = user.email.toLowerCase();
+			hooks: {
+				beforeValidate: function (user, options) {
+					if (typeof user.email === 'string') {
+						user.email = user.email.toLowerCase();
+					}
 				}
-			}
-		}, 
-		classMethods: {
-			authenticate: function(body) {
-				var email = body.email.trim();
-				var password = body.password.trim();
+			},
+			classMethods: {
+				authenticate: function (body) {
+					var email = body.email.trim();
+					var password = body.password.trim();
 
-				return new Promise(function(resolve, reject) {
-					if (typeof email === 'string' && email.length > 0 &&
-						typeof password === 'string' && password.length > 0) {						
-						// Lookup user in the database
-						User
-							.findOne({
-								where: {
-									email: email
-								}
-							})
-							.then(function(user) {
-								if (user) {
-									if (bcrypt.compareSync(password, user.password_hash)) {
-										resolve(user);
+					return new Promise(function (resolve, reject) {
+						if (typeof email === 'string' && email.length > 0 &&
+							typeof password === 'string' && password.length > 0) {
+							// Lookup user in the database
+							User
+								.findOne({
+									where: {
+										email: email
+									}
+								})
+								.then(function (user) {
+									if (user) {
+										if (bcrypt.compareSync(password, user.password_hash)) {
+											resolve(user);
+										}
+										else {
+											reject();
+										}
 									}
 									else {
 										reject();
 									}
-								}
-								else {
+								})
+								.catch(function (e) {
 									reject();
-								}
-							})
-							.catch(function(e) {
-								reject();
-							});
-					} 
-					else {
-						return reject();
+								});
+						}
+						else {
+							return reject();
+						}
+					});
+				}
+			},
+			instanceMethods: {
+				toPublicJSON: function () {
+					var json = this.toJSON();
+					return _.pick(json, 'id', 'email', 'createdAt', 'updatedAt');
+				},
+				generateToken: function (type) {
+					if (!_.isString(type)) {
+						return undefined;
 					}
-				});
+					try {
+						var stringData = JSON.stringify({ id: this.get('id'), type: type });
+						var encryptedData = cryptojs.AES.encrypt(stringData, 'abc123!"£$').toString();
+						var token = jwt.sign({
+							token: encryptedData
+						}, 'qwerty098');
+						return token;
+					} catch (e) {
+						return undefined;
+					}
+				}
 			}
-		},
-		instanceMethods: {
-			toPublicJSON: function() {
-				var json = this.toJSON();
-				return _.pick(json, 'id', 'email', 'createdAt', 'updatedAt');
-			}
-		}
-	});
+		});
 	return User;
 };
