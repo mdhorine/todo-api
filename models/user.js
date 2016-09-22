@@ -4,7 +4,7 @@ const saltRounds = 10;
 var _ = require('underscore');
 
 module.exports = function(sequelize, DataTypes) {
-	return sequelize.define('user', {
+	var User = sequelize.define('user', {
 		email: {
 			type: DataTypes.STRING,
 			allowNull: false,
@@ -41,6 +41,44 @@ module.exports = function(sequelize, DataTypes) {
 				}
 			}
 		}, 
+		classMethods: {
+			authenticate: function(body) {
+				var email = body.email.trim();
+				var password = body.password.trim();
+
+				return new Promise(function(resolve, reject) {
+					if (typeof email === 'string' && email.length > 0 &&
+						typeof password === 'string' && password.length > 0) {						
+						// Lookup user in the database
+						User
+							.findOne({
+								where: {
+									email: email
+								}
+							})
+							.then(function(user) {
+								if (user) {
+									if (bcrypt.compareSync(password, user.password_hash)) {
+										resolve(user);
+									}
+									else {
+										reject();
+									}
+								}
+								else {
+									reject();
+								}
+							})
+							.catch(function(e) {
+								reject();
+							});
+					} 
+					else {
+						return reject();
+					}
+				});
+			}
+		},
 		instanceMethods: {
 			toPublicJSON: function() {
 				var json = this.toJSON();
@@ -48,4 +86,5 @@ module.exports = function(sequelize, DataTypes) {
 			}
 		}
 	});
+	return User;
 };

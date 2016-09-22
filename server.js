@@ -1,6 +1,8 @@
 var express = require('express');
 var app = express();
 
+var bcrypt = require('bcrypt');
+
 var _ = require('underscore');
 
 var db = require('./db.js');
@@ -172,6 +174,20 @@ app.post('/users', jsonParser, function(req, res) {
 			res.status(400).json(e);
 		});	
 });
+
+// POST /users/login
+
+app.post('/users/login', jsonParser, function(req, res) {
+	var body = _.pick(req.body, 'email', 'password');
+
+	db.User.authenticate(body)
+		.then(function(user) {
+			res.status(200).json(user.toPublicJSON());
+		}, function() {
+			res.status(401).send();
+		});
+});
+
 
 db.sequelize.sync().then(function() {
 	app.listen(PORT, function() {
