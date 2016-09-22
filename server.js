@@ -182,7 +182,13 @@ app.post('/users/login', jsonParser, function(req, res) {
 
 	db.User.authenticate(body)
 		.then(function(user) {
-			res.status(200).header('Auth', user.generateToken('authentication')).json(user.toPublicJSON());
+			var token = user.generateToken('authentication');
+			if (token) {
+				res.status(200).header('Auth', token).json(user.toPublicJSON());
+			}
+			else {
+				res.status(401).send();
+			}
 		}, function() {
 			res.status(401).send();
 		});
