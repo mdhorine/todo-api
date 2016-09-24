@@ -9,6 +9,7 @@ var db = require('./db.js');
 
 var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json();
+var middleware = require('./middleware.js')(db);
 
 var PORT = process.env.PORT || 3000;
 
@@ -78,7 +79,7 @@ app.get('/todos/:id', function(req, res) {
 
 // POST /todos
 
-app.post('/todos', jsonParser, function(req, res) {
+app.post('/todos', middleware.requireAuthentication, jsonParser, function(req, res) {
 
 	var body = _.pick(req.body, 'description', 'completed');
 
