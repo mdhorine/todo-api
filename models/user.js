@@ -80,16 +80,14 @@ module.exports = function (sequelize, DataTypes) {
 						}
 					});
 				},
-				findByToken: function(token) {
+				findByToken: function (token) {
 					return new Promise(function (resolve, reject) {
-						// TODO: Look up user by token and return user
-						// Currently decrypts token, looks up user, returns user
 						try {
 							var verifiedToken = jwt.verify(token, 'qwerty098');
 							var decryptedTokenBytes = cryptojs.AES.decrypt(verifiedToken.token, 'abc123!"£$');
 							var decryptedToken = JSON.parse(decryptedTokenBytes.toString(cryptojs.enc.Utf8));
 							User.findById(decryptedToken.id)
-								.then(function(user) {
+								.then(function (user) {
 									if (user) {
 										resolve(user);
 									}
